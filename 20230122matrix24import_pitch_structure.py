@@ -5,7 +5,9 @@ from fractions import Fraction #pitch関数の周波数計算に使う。
 import math #周波数の計算に使う。
 import time#計算時間の測定に使う
 
-import tree_structure3 as tree_str#高度な変換代数の計算に使う自作モジュール。
+import time_structure as ts #高度な変換代数の計算に使う自作モジュール。
+import pitch_structure as ps
+
 
 ####################################################
 ####################################################
@@ -24,7 +26,7 @@ import tree_structure3 as tree_str#高度な変換代数の計算に使う自作
 ####################################################
 
 #木の成長関数
-def glowing_function(repeat=16,choice=2,up=10,down=11,R_true_tree=[],ref=3):
+def glowing_function(repeat=18,choice=2,up=3,down=5,R_true_tree=[],ref=3):
 
     #tree(集合が1桁,2桁,3桁…の木)
     tree = []
@@ -638,6 +640,32 @@ def transP3_unite(time_list,pitch_list,voice_list):#擦り合わせ、冪集合�
 
     return new_time_list,new_pitch_list,new_voice_list
 
+
+
+def transP3_unite2(time_list,pitch_list,voice_list):
+    '''
+    変換代数後の結合層  time_structureとpitch_structureの直積を取る
+    '''
+
+    new_time_list =[]
+    new_pitch_list =[]
+    new_voice_list =[]
+
+    for index in range(len(time_list)):
+
+
+        for time in time_list[index]:
+            for pitch in pitch_list[index]:
+
+                new_time_list.append(time)
+                new_pitch_list.append(pitch)
+                new_voice_list.append(voice_list[index])
+
+
+    return new_time_list,new_pitch_list,new_voice_list
+
+
+
 #################################################
 #   TERMINAL                                    #
 #################################################
@@ -664,14 +692,16 @@ def realisation(tree):
 
     '''
     time_mini_tree,time_mapping1 = transP1(tree=tree,R_full_tree=R_full_tree,R_true_tree=R_true_tree1,ref=ref)
-    '''
     pitch_mini_tree,pitch_mapping1 = transP1(tree=tree,R_full_tree=R_full_tree,R_true_tree=R_true_tree2,ref=ref)
+    '''
+
     voice_mini_tree,voice_mapping1 = transP1(tree=tree,R_full_tree=R_full_tree,R_true_tree=R_true_tree3,ref=ref)
 
     '''
     time_mini_tree = down(time_mini_tree)
-    '''
     pitch_mini_tree = down(pitch_mini_tree)
+    '''
+
     voice_mini_tree = down(voice_mini_tree)
 
     ########################################
@@ -681,6 +711,7 @@ def realisation(tree):
     time_mapping2 = time_structure(time_mini_tree)
     '''
 
+    '''
     ###pitch_structureで用いる音階を設定する
     topolo_list = make_topolo()
 
@@ -691,7 +722,7 @@ def realisation(tree):
     #pitch_structureの後付けオクターブ巡回子。
     if True:
         pitch_mapping2 = pitch_limit(pitch_mapping2)
-
+    '''
 
 
     #→→ここにvoice_structureを記述する。
@@ -706,29 +737,36 @@ def realisation(tree):
     ########################################
 
     #time_list = transP2(time_mapping1,time_mapping2)
-    pitch_list = transP2(pitch_mapping1,pitch_mapping2)
+    #pitch_list = transP2(pitch_mapping1,pitch_mapping2)
     voice_list = transP2(voice_mapping1,voice_mapping2)
+    
     '''
     time_list = transP3(time_mapping1,time_mapping2,time_mini_tree,tree)
     '''
-
-
-
 
     '''
     →→→→→→→→→→→→→→→→→→→→→→→
     treeモジュールによる2-変換代数をここに埋め込む
     ←←←←←←←←←←←←←←←←←←←←←←←
     '''
-    time_object = tree_str.List_Adress_Tree(adresses=tree)
+
+
+    time_object = ts.List_Adress_Tree(adresses=tree)
     time_list = time_object.make_time_list()
+
+    pitch_object = ps.List_Adress_Tree(adresses=tree)
+    pitch_list = pitch_object.make_time_list()
+
 
     #pitch_list = transP3(pitch_mapping1,pitch_mapping2,pitch_mini_tree,tree)
     #voice_list = transP3(voice_mapping1,voice_mapping2,voice_mini_tree,tree)
 
     #擦り合わせ
+    '''
     time_list,pitch_list,voice_list = transP3_unite(time_list,pitch_list,voice_list)
-   
+    '''
+
+    time_list,pitch_list,voice_list = transP3_unite2(time_list,pitch_list,voice_list)
     ########################################
 
     print('p2_end')
@@ -1383,7 +1421,7 @@ def voice_structure(tree,choice=1):
         for note in tree:
             voice = 0
 
-            for branch in [x for x in note if x in [2,4,6,8,10,12] ]:
+            for branch in [x for x in note if x in [5,7,9,11,13] ]:
                 voice = voice + 2**branch
                 voice = (voice%128) + 1
             
@@ -1421,7 +1459,7 @@ def midinize(pitch_list,time_list,voice_list):
 
     
     
-    length = 1/4 #一拍の長さ
+    length = 1/8 #一拍の長さ
     howmany_voice = max(voice_list) +1#声部の数
 
     #時間反転作用↓(Trueで作動)
@@ -1466,7 +1504,7 @@ def midinize(pitch_list,time_list,voice_list):
 
     for i in range(howmany_voice):#声部ごとに処理する。
 
-        new_instrument =   pretty_midi.Instrument(program=i)  #instrumentsinstanceなるものを作成。
+        new_instrument =   pretty_midi.Instrument(program=2)  #instrumentsinstanceなるものを作成。
 
 
         #声部の音を抽出する
@@ -1578,17 +1616,8 @@ def midinize(pitch_list,time_list,voice_list):
 #      main関数　　                                 #
 ####################################################
 
-def set_config():#設定を一律にここで弄れるようにする
-
-    config = {}
-
-    return config
 
 def main():#まずここが実行される。処理の全体像を記述せよ。
-    
-
-    #グローバルな変数の設定をする。
-    config = set_config()
 
     #定数、縮約木
     ref=5
@@ -1596,75 +1625,15 @@ def main():#まずここが実行される。処理の全体像を記述せよ�
     R_full_tree = [[i for i in j if i>0] for j in R_full_tree]
     R_true_tree = R_full_tree[4:]
 
-    #(時間計測)
-    print('start')
-    C1=time.time()
-
     #2進の木集合を生成する。
-    tree = glowing_function(repeat=16,choice=2,R_true_tree=R_true_tree,ref=ref)
-
-    #(時間計測)
-    print('glow')
-    C2=copy.copy(C1)
-    C1=time.time()
-    print(C1-C2)
+    tree = glowing_function(repeat=10,choice=0,R_true_tree=R_true_tree,ref=ref)
 
     #2進の木集合を楽譜に変換する。
     realisation(tree) 
 
-    #(時間計測)
-    print('real')
-    C2=copy.copy(C1)
-    C1=time.time()
-    print(C1-C2)
-
     return None
 
 
-def test1():
-
-    #定数、縮約木
-    ref=3
-    R_full_tree = glowing_function(repeat=ref,choice=0)###生成関数のchoice_function、choice=2から外部化
-    R_full_tree = [[i for i in j if i>0] for j in R_full_tree]
-    R_true_tree = R_full_tree[1:]
-
-
-    #2進の木集合を生成する。
-    tree = glowing_function(R_true_tree=R_true_tree,ref=ref)
-
-
-    ############################################################################
-    ref = 5
-
-    R_full_tree = glowing_function(repeat=ref,choice=0)
-    R_full_tree = [[i for i in j if i>0] for j in R_full_tree]
-
-    R_true_tree1 = R_full_tree[:16]
-    R_true_tree2 = R_full_tree[:8]
-    R_true_tree3 = R_full_tree[:4]
-
-    tree = down(tree)
-
-
-    for leaf in tree:
-        for now_branch in leaf:
-            up_tree = [x for x in leaf if (x<now_branch)]
-
-            x1 = Trans_choice(up_tree,  now_branch, choice=4, R_full_tree=R_full_tree, R_true_tree=R_true_tree1, ref=5)
-            x2 = Trans_choice(up_tree,  now_branch, choice=5, R_full_tree=R_full_tree, R_true_tree=R_true_tree1, ref=5)
-
-            if x1!=x2:
-                print(now_branch)
-                print(up_tree)
-                print([x1,x2])
-    
-    
-    #time_mini_tree,time_mapping1 = transP1(tree=tree,R_full_tree=R_full_tree,R_true_tree=R_true_tree1,ref=ref)
-    #pitch_mini_tree,pitch_mapping1 = transP1(tree=tree,R_full_tree=R_full_tree,R_true_tree=R_true_tree2,ref=ref)
-    #voice_mini_tree,voice_mapping1 = transP1(tree=tree,R_full_tree=R_full_tree,R_true_tree=R_true_tree3,ref=ref)
-
-    return None
 
 if __name__ == '__main__':#このファイルが開かれたらmain関数を実行する。
     main()
