@@ -2,19 +2,22 @@
 TREEのデータ構造を扱うmodule
 '''
 
-from itertools import chain #リストを一次元化するときに使う
+from itertools import chain #リストを一次元化するときに使う。
+import tree_config #自作モジュール。
+
 
 class List_Adress_Tree:
     '''
     旧来のプログラムで使っていた、リスト表記によるAdressを、人権が認められる記法で分かりやすく扱うためのクラス
-    
+
     List_Adress_Tree()は、基本的には、BinaryTreeと同値な対象を表現するための一つの簡便的な表示法であり、木のそれぞれの葉のadressの集合によって木構造を暗に示す。
     ただし、中間の枝に関する情報は持っていないため、曖昧性がある。
     '''
 
-    def __init__(self,adresses):
+    def __init__(self,adresses,tree_name):
 
         self.adresses = adresses
+        self.tree_name = tree_name
 
     def max_adress(self):
         '''
@@ -23,41 +26,19 @@ class List_Adress_Tree:
         return max(chain(*self.adresses))
 
 
-    def left(self):
-        '''
-        木の左を返す
-        '''
-        if len(self.adresses)==0:
-            return []
-        
-        num=self.max_adress()
-        return List_Adress_Tree(adresses=[x for x in self.adresses if not num in x])
-
-
-    def right(self):
-        '''
-        木の右を返す
-        '''
-        if len(self.adresses)==0:
-            return []
-
-        num=self.max_adress()
-        return List_Adress_Tree(adresses=[[y for y in x if y!=num] for x in self.adresses if num in x])
-
-
-
     def adress_to_tree2(self):
         '''
         0付きのadressの集合を渡された時、そのadressの集合に対応するBinaryTreeのrootを返してくれる。
         '''
 
-        root = BinaryNode()
+        root = BinaryNode(tree_name=self.tree_name)
 
         for listadress in (self.adresses):
-            path = Path(listadress)
+
+            path = Path(listadress,tree_name=self.tree_name)
             top_num = self.max_adress()
             path.to_adress(top_num)
-            root.make_path(path) 
+            root.make_path(path)
 
         return root
 
@@ -75,8 +56,11 @@ class List_Adress_Tree:
 
         org_binary_node.sister[0].set_val()
 
+
         time_list = []
         org_binary_node.search_vals(time_list)
+
+        time_list = tree_config.output_range_config(time_list,tree_name=self.tree_name)
 
         return time_list
 
@@ -84,15 +68,16 @@ class List_Adress_Tree:
 class Path:
     '''
     pathとは、旧来のlistタイプのadressには(0とNoneを同一視しててキモイなどの点で)人権がないので、pathという新しいツールに進化させて人権を獲得したものである。
-    
+
     pathは、木の中での(通常はrootからの)相対的な位置関係を表す。
-    
+
     pathは以下のような記述ルールに基づいて書かれる。
     [a1,a2,a3…an]というリストが渡された時、rootから、a1番目、a2番目,,,というnodeを辿って行ったときに辿りつけるnodeが、現在のnodeである。
     '''
 
-    def __init__(self,adress=[]):
+    def __init__(self,adress=[],tree_name=''):
         self.adress = adress
+        self.tree_name=tree_name
 
     def to_adress(self,top_num):
         '''
@@ -111,6 +96,8 @@ class Path:
 
         self.adress = new_adress
 
+
+
     def to_bool(self, bool_pattern=0, dim_pattern={}):
         '''
         変換代数に用いる。
@@ -119,42 +106,8 @@ class Path:
 
         D, U, R =  self.adress_to_DUR()
 
+        return tree_config.to_bool_config(tree_name=self.tree_name,bool_pattern=bool_pattern, D=D,U=U,R=R)
 
-        if bool_pattern == 0:##org_treeにて、縮約番号の指示を出す
-
-            return (D<5)  #深度の偶奇で縮約、非縮約を分ける
-
-
-
-        '''
-        DIM_PRISET
-        '''
-
-
-        if bool_pattern == 1:#2-変換代数のleft_treeにて、縮約番号の指示を出す
-            dim_pattern
-            return True#深度の偶奇で縮約、非縮約を分ける
-
-
-        if bool_pattern == 2:#2-変換代数のright_treeにて、縮約番号の指示を出す
-            dim_pattern
-            return True#深度の偶奇で縮約、非縮約を分ける
-
-
-        if bool_pattern == 3:#make_brotherのmatching_patternの検索。
-            dim_pattern
-            return 3
-
-
-        
-        '''
-        DIM_CHOICE
-        '''
-
-
-        if bool_pattern == 4:#bool_pattern == 0がTrueのとき、　更に  1_変換代数のdim_patternを設定する。
-            dim_pattern = {'D':D,'U':U,'R':R}
-            return dim_pattern
 
 
 
@@ -163,7 +116,7 @@ class Path:
         adressからd,u,rの数字の3つ組を計算して返す
         '''
         D = len(self.adress)
-        
+
         U_Tree = (self.adress + [0]*len_U)[:len_U]
         R_Tree = (self.adress[::-1] + [0]*len_R)[:len_R]
 
@@ -184,13 +137,13 @@ class Path:
         '''
         そのパスの左のパスを返す
         '''
-        return Path(self.adress+[0])
-    
+        return Path(self.adress+[0],tree_name=self.tree_name)
+
     def right(self):
         '''
         そのパスの右のパスを返す
         '''
-        return Path(self.adress+[1])
+        return Path(self.adress+[1],tree_name=self.tree_name)
 
 
 class BinaryNode:
@@ -198,10 +151,11 @@ class BinaryNode:
     二分木構造。
     一般の根付き木を使いたい場合にはNodeを使用すること。
     '''
-    def __init__(self):
+    def __init__(self,tree_name):
         self.root = None
         self.left = None
         self.right = None
+        self.tree_name=tree_name
 
 
     def to_adress(self):
@@ -212,7 +166,7 @@ class BinaryNode:
 
         if not(self.left) and (self.right):
             return [[0]]
-        
+
         if not(self.left):
             left_adress = [[0]]
         else:
@@ -224,7 +178,7 @@ class BinaryNode:
             right_adress, right_top_num = self.right.to_adress()
 
         top_num = max([left_top_num,right_top_num])+1
-        
+
         for i in right_adress:
             i.append(top_num)
 
@@ -235,17 +189,17 @@ class BinaryNode:
         右にノードを追加する
         '''
         if not(self.right):
-            self.right = BinaryNode()
-        
+            self.right = BinaryNode(tree_name=self.tree_name)
+
         return self.right
-    
+
     def make_left(self):
         '''
         左にノードを追加する
         '''
         if not(self.left):
-            self.left = BinaryNode()
-        
+            self.left = BinaryNode(tree_name=self.tree_name)
+
         return self.left
 
     def make_path(self,path):
@@ -256,30 +210,32 @@ class BinaryNode:
 
         if len(path.adress) == 0:
             return self
-        
-        next_node = BinaryNode()
+
+        '''
+        next_node = BinaryNode(tree_name=self.tree_name)#これは削除してもよい？
+        '''
 
         if path.adress[0] == 0:
             if self.left:
                 next_node = self.left
             else:
-                next_node = BinaryNode()
+                next_node = BinaryNode(tree_name=self.tree_name)
                 self.left = next_node
 
         elif path.adress[0] == 1:
             if self.right:
                 next_node = self.right
             else:
-                next_node = BinaryNode()
+                next_node = BinaryNode(tree_name=self.tree_name)
                 self.right = next_node
 
         else:
             print('エラー、二分木のパスには0か1の値を入れてください')
 
         next_node.root =self
-        next_node.make_path(Path(path.adress[1:]))
+        next_node.make_path(Path(path.adress[1:],tree_name=self.tree_name))
         return None
-    
+
 
     def get_root(self):
         '''
@@ -289,7 +245,7 @@ class BinaryNode:
             return self.root.get_root()
         else:
             return self
-        
+
 
     def get_path(self):
         '''
@@ -298,7 +254,7 @@ class BinaryNode:
         '''
         #selfのpathを設定する
         if not(self.root):
-            self.path = Path([])
+            self.path = Path([],tree_name=self.tree_name)
 
         else:
             if self.root.right == self:
@@ -316,7 +272,7 @@ class BinaryNode:
             self.left.get_path()
 
         return None
-    
+
     def set_path(self):
         '''
         その木全体のnodeにパスを設定する
@@ -329,12 +285,12 @@ class BinaryNode:
     def make_copy_node(self):
         '''
         rootに対して適用せよ。その木の各nodeにコピーを作る。
-       
+
         コピーする木にはself.sisterという写像がついていて、娘のnodeの"リスト"を覚えている。
         コピーされた木のnodeには、self.motherという写像がついていて、母親のnodeを覚えている。
         '''
 
-        copy_root = Node()
+        copy_root = Node(tree_name=self.tree_name)
 
         self.sister = [copy_root]
         '''
@@ -346,7 +302,7 @@ class BinaryNode:
         if self.left:
             self.left.make_copy_node()
         if self.right:
-            self.right.make_copy_node() 
+            self.right.make_copy_node()
 
         return None
 
@@ -363,7 +319,7 @@ class BinaryNode:
         org_root.sister[0].set_copy_nexts()
 
         return org_root.sister[0]
-    
+
 
 
 
@@ -372,13 +328,15 @@ class BinaryNode:
         2-変換代数
         この処理についてはノートの三角形図式を参照
 
-        結果的に、sisterのtreeは破壊されてminitreeとなり、motherのtreeの葉のsister写像には求めるminitreeの葉の冪への写像が入っている。        
+        結果的に、sisterのtreeは破壊されてminitreeとなり、motherのtreeの葉のsister写像には求めるminitreeの葉の冪への写像が入っている。
         '''
+
         self.make_copy_tree()
         self.set_path()
 
         org_root = self
         org_root.do_trans_from_bottom()
+
 
         return org_root.sister[0]
 
@@ -397,7 +355,7 @@ class BinaryNode:
             self.sister[0].do_contraction(dim_pattern=self.path.to_bool(bool_pattern=4))
 
         return None
-    
+
 
     def pull_buck(self):
         '''
@@ -411,34 +369,80 @@ class BinaryNode:
 
                 if not 'co_brother' in vars(x).keys():##debug
                     print('no_cobro_error')
+                    print(self)
+
                     print(x)
                     print(vars(x))
-                    print('nextnode_informations')
+                    print(x.path.adress)
 
-                    '''
-                    for co_sister_node in x.co_sister:
-                        print(vars(co_sister_node))
-                    '''
-                        
                     print('informations___end')
 
 
             self.sister = [x.co_brother for x in self.sister]
             self.sister = list(chain(*self.sister))
 
+
         if self.left:
             self.left.pull_buck()
         if self.right:
             self.right.pull_buck()
 
-
     def search_vals(self,time_list):
         '''
         葉に含まれる値を検索する
         '''
-        if (not self.right) and (not self.left):         
+        if (not self.right) and (not self.left):
+
+            for i in self.sister:
+                if not 'val' in vars(i).keys():
+                    pass
+
+                    '''
+                    print('no_vals_error')
+                    print(i)
+                    print(vars(i))
+
+                    print('root_node_information')
+                    print(i.root)
+                    print(vars(i.root))
+
+                    print('root_root_node_information')
+                    print(i.root.root)
+                    print(vars(i.root.root))
+
+                    print('root_root_root_node_information')
+                    print(i.root.root.root)
+                    print(vars(i.root.root.root))
+
+                    print('root_root_root_root_node_information')
+                    print(i.root.root.root.root)
+                    print(vars(i.root.root.root.root))
+
+                    print('root_root_root_root_root_node_information')
+                    print(i.root.root.root.root.root)
+                    print(vars(i.root.root.root.root.root))
+
+                    print('root_root_root_root_root_root_node_information')
+                    print(i.root.root.root.root.root.root)
+                    print(vars(i.root.root.root.root.root.root))
+
+                    print('ultimet_root_information')
+                    x=i
+                    depth=0
+                    while x.root:
+                        x=x.root
+                        depth+=1
+
+                    print(depth)
+                    print(x)
+                    print(vars(x))
+
+                    print('error_information_end')
+                    '''
 
             time_list.append([x.val for x in self.sister])
+
+
 
         if self.left:
             self.left.search_vals(time_list)
@@ -448,14 +452,26 @@ class BinaryNode:
         return time_list
 
 
+    def append_leafs(self,list):
+        '''
+        デバッグツールに用いる。
+        '''
+        if (not self.right) and (not self.left):
+            list.append(self)
+
+        if self.left:
+            self.left.append_leafs(list)
+        if self.right:
+            self.right.append_leafs(list)
 
 class Node:
     '''
     根付き木構造
     '''
-    def __init__(self):
+    def __init__(self,tree_name):
         self.root = None
         self.next = []
+        self.tree_name = tree_name
 
     def set_copy_nexts(self):
         '''
@@ -482,36 +498,92 @@ class Node:
         '''
         指定されたnode(self)について、その下のsub_tree間で1_変換代数を行う
         '''
+
+        if len(self.next) >2:
+            print('too_many_next_error')
+
         if len(self.next) == 0:
             return None
-        
+
 
         if len(self.next) == 2:
             left_tree = self.next[0]
             right_tree = self.next[1]
 
 
-            copy_left_tree = left_tree.double_trans_alg(bool_pattern=1,  dim_pattern=[])#copy_left_treeはSubNode
-            copy_right_tree = right_tree.double_trans_alg(bool_pattern=2,  dim_pattern=[])#copy_right_treeはSubNode
+            copy_left_tree = left_tree.double_trans_alg(bool_pattern=1,  dim_pattern=dim_pattern)#copy_left_treeはSubNode
+            copy_right_tree = right_tree.double_trans_alg(bool_pattern=2,  dim_pattern=dim_pattern)#copy_right_treeはSubNode
 
 
             #ここで、left_treeを固定した上で、right_treeをleft_treeに引き戻す写像を構成する。
 
 
             copy_right_tree.make_co_brother()
-            copy_left_tree.make_brother(copy_right_tree,dim_pattern=[])
+            copy_left_tree.make_brother(copy_right_tree,tree_name=self.tree_name,dim_pattern=dim_pattern)
 
 
 
             #四角形図式の射を合成して、 copy_left_treeの葉をcopy_right_treeの葉に引き戻す写像を作る。
             right_tree.pull_buck()
-
-
-
-            self.next.remove(right_tree)
             right_tree.mother.pull_buck()#right_tree.motherはBinaryNode
 
 
+            #########################debug#########################
+
+            right_tree_has_bug, bug_node_list = right_tree.debug()
+
+            '''
+            if right_tree_has_bug:
+                print('right_tree_has_bug')
+                print(bug_node_list)
+            '''
+
+            ########################################################
+
+            self.next.remove(right_tree)
+
+
+
+
+
+    def debug(self):
+        '''
+        Binary_nodeの葉が誤ってright_treeに飛ばされてないか確認する。
+        '''
+
+        right_tree_has_bug = False
+        bug_node_list = set()
+
+        binary_root = self.mother
+        while binary_root.root:
+            binary_root=binary_root.root
+
+
+
+        binary_node_leafs = []
+        binary_root.append_leafs(binary_node_leafs)
+
+
+        for leaf in binary_node_leafs:
+            for sister in leaf.sister:
+
+                sister_org=sister
+
+                if sister==self:
+                    #print('right_exisitance_error')
+                    right_tree_has_bug = True
+                    bug_node_list.add(sister_org)
+
+                while sister.root:
+                    sister=sister.root
+
+                    if sister==self:
+                        #print('right_exisitance_error')
+                        right_tree_has_bug = True
+                        bug_node_list.add(sister_org)
+
+
+        return right_tree_has_bug, bug_node_list
 
 
     def pull_buck(self):
@@ -535,7 +607,7 @@ class Node:
             return self.root.get_root()
         else:
             return self
-        
+
     def get_path(self,my_root):
         '''
         rootに対して適用せよ。
@@ -543,21 +615,44 @@ class Node:
         '''
         #selfのpathを設定する
         if self == my_root:
-            self.path = Path([])
+            self.path = Path([],tree_name=self.tree_name)
 
         else:
             conode_num = len(self.root.next)
 
             for i in range(conode_num):
                 if self.root.next[i] == self:
-                    self.path = Path(self.root.path.adress + [conode_num])
+
+                    if 'path' in vars(self.root).keys():
+                        self.path = Path(self.root.path.adress + [conode_num],tree_name=self.tree_name)
+                    else:
+                        print('not_has_path_error')
+                        print(self)
+                        print(vars(self))
+
+                        if self.root:
+                            print('self.root')
+                            print(self.root)
+                            print(vars(self.root))
+
+                            if self.root.root:
+                                print('self.root.root')
+                                print(self.root.root)
+                                print(vars(self.root.root))
+
+                                if self.root.root.root:
+                                    print('self.root.root.root')
+                                    print(self.root.root.root)
+                                    print(vars(self.root.root.root))
+
+                        print('error_imformation_end')
 
         #selfの下のpathを設定する
         for next_node in self.next:
             next_node.get_path(my_root)
 
         return None
-    
+
     def set_path(self):
         '''
         その木全体のnodeにパスを設定する
@@ -570,12 +665,12 @@ class Node:
     def make_copy_node(self):
         '''
         rootに対して適用せよ。その木の各nodeにコピーを作る。
-       
+
         コピーする木にはself.sisterという写像がついていて、娘のnodeの"リスト"を覚えている。
         コピーされた木のnodeには、self.motherという写像がついていて、母親のnodeを覚えている。
         '''
 
-        copy_root = SubNode()
+        copy_root = SubNode(tree_name=self.tree_name)
 
         self.sister = [copy_root]
         copy_root.mother = self
@@ -583,7 +678,7 @@ class Node:
         for next_node in self.next:
             next_node.make_copy_node()
 
-        return None           
+        return None
 
     def make_copy_tree(self):
         '''
@@ -605,11 +700,13 @@ class Node:
         2-変換代数
         この処理についてはノートの三角形図式を参照
 
-        結果的に、sisterのtreeは破壊されてminitreeとなり、motherのtreeの葉のsister写像には求めるminitreeの葉の冪への写像が入っている。        
+        結果的に、sisterのtreeは破壊されてminitreeとなり、motherのtreeの葉のsister写像には求めるminitreeの葉の冪への写像が入っている。
         '''
-        self.make_copy_tree()
-        self.set_path()
 
+        #selfはNode
+
+        copy_tree = self.make_copy_tree()
+        self.set_path()################(縮約をしている部分木で、新たにpathが作り直されていることに注意)
 
         org_root = self
         org_root.do_trans_from_bottom(org_root,bool_pattern,dim_pattern)
@@ -627,9 +724,8 @@ class Node:
             nodes.do_trans_from_bottom(my_root,bool_pattern,dim_pattern)
 
 
-        if not 'cycle_trans' in vars(self).keys():
-            if self.path.to_bool(bool_pattern,dim_pattern):
-                self.sister[0].do_contraction(my_root)
+        if self.path.to_bool(bool_pattern,dim_pattern):
+            self.sister[0].do_contraction(my_root)
 
 
         return None
@@ -644,7 +740,7 @@ class Node:
         self.append_leafs(leafs)
 
         for number in range(len(leafs)):
-            leafs[number].val= int(number * (108-21)/len(leafs)) + 21
+            leafs[number].val=number
 
         return leafs
 
@@ -656,8 +752,9 @@ class Node:
         '''
         leafs = []
         self.append_leafs(leafs)
-      
+
         return leafs
+
 
     def append_leafs(self,leafs):
 
@@ -666,6 +763,8 @@ class Node:
 
         for i in self.next:
             i.append_leafs(leafs)
+
+        self.state='vals_checked'
 
         return None
 
@@ -677,54 +776,33 @@ class Node:
         make_co_brother関数にて、Node_treeに追加するcycle_trans木をコピーする時に使う。
         '''
 
-        new_node = Node()
-        new_node.cycle_trans = None#debug
+        new_node = Node(tree_name=self.tree_name)
+        new_node.type = 'cycle_trans'#debug
 
 
 
         if len(self.next) ==0:
             new_node.mother = self.mother
 
-  
+
 
         for nexts in self.next:
             new_node.next.append( nexts.copy_cycle_trans_node_tree() )
+
         for nexts in new_node.next:
-            nexts.root = self
+            nexts.root = new_node
 
 
 
         if len(self.next) ==0:
             for right_subnodes in self.sister:
-                
-                flowing_subnode = SubNode()
+
+                flowing_subnode = SubNode(tree_name=self.tree_name)
                 flowing_subnode.mother = new_node
                 right_subnodes.co_brother.append(flowing_subnode)
 
 
         return new_node
-
-
-    def make_joint_node(self):
-        '''
-        cycle_trans木をLeft_node_treeに埋め込んで生やすためのjoint_nodeを木の中間に作成する。
-        与えられたself(Node_object)の上部に新たにjoint_nodeを作る。
-
-        joint_nodeは、motherやsisterがない、木的に特殊な対象である。
-        これはjoint_node属性のラベルによって明示される。
-        '''
-        joint_node =Node()
-
-        if self.root:
-            joint_node.root =self.root
-
-            self.root.next.append(joint_node)
-            self.root.next.remove(self)
-
-        self.root = joint_node
-        joint_node.next = [self]
-
-        return joint_node
 
 
 
@@ -752,7 +830,6 @@ class SubNode(Node):
             指定されたnode(self)について、その下のsub_tree間で1_変換代数を行う
             パターンB(ノート参照)の、上詰めアルゴリズムである。
             '''
-            
 
             if self.mother==my_root:
                 return None
@@ -770,10 +847,12 @@ class SubNode(Node):
                 return None
 
 
-    def make_brother(self,copy_right_tree, path = Path(adress=[]),   dim_pattern={}):
+    def make_brother(self,copy_right_tree, adress=[],tree_name='error_tree_name',   dim_pattern={}):
         '''
         左の木から、右の木に対して、引き戻し兄弟写像を作る。
         '''
+
+        path = Path(adress=adress,tree_name=tree_name)
 
 
 
@@ -782,7 +861,7 @@ class SubNode(Node):
         '''
         separate_number=0
 
-        if False:   #self.mother.root:#root上では循環-変換代数が実装できない
+        if tree_config.cycle_trans_config(tree_name=self.tree_name):#self.mother.root:#root上では循環-変換代数が実装できない(→A方式ならできるはず)
 
             #separate
 
@@ -792,7 +871,8 @@ class SubNode(Node):
 
             #Node_treeにcycle_trans木を追加
 
-            joint_node = self.mother.make_joint_node()
+            joint_node = self.mother#.root   #rootを付けるとA方式、root無しだとB方式。
+
 
             for sister_append_tree in copy_right_tree_R:
 
@@ -800,6 +880,10 @@ class SubNode(Node):
                 new_node = append_tree.copy_cycle_trans_node_tree()
                 joint_node.next.append(new_node)
                 new_node.root=joint_node
+
+                new_node.type='cycle_trans_root'#debug
+
+
 
 
 
@@ -840,14 +924,14 @@ class SubNode(Node):
 
             if R_end_pattern ==0:#写像を消滅させる
                 return None
-            
+
             if R_end_pattern ==1:#写像を一点に飛ばす
-                self.next[0].make_brother(copy_right_tree ,path=Path(adress=path.adress+[0]), dim_pattern=dim_pattern)
+                self.next[0].make_brother(copy_right_tree ,adress=path.adress+[0], tree_name=tree_name, dim_pattern=dim_pattern)
                 return None
 
             if R_end_pattern ==2:#写像を全域に飛ばす
                 for i in range(left_next_number):
-                    self.next[i].make_brother(copy_right_tree ,path=Path(adress=path.adress+[i]), dim_pattern=dim_pattern)
+                    self.next[i].make_brother(copy_right_tree ,adress=path.adress+[i], tree_name=tree_name, dim_pattern=dim_pattern)
                 return None
 
 
@@ -856,15 +940,15 @@ class SubNode(Node):
 
             if L_end_pattern ==0:#写像を消滅させる
                 return None
-            
+
             if L_end_pattern ==1:#写像を一点から飛ばす
-                self.make_brother(copy_right_tree.next[0] ,path=Path(adress=path.adress), dim_pattern=dim_pattern)
+                self.make_brother(copy_right_tree.next[0] ,adress=path.adress, tree_name=tree_name, dim_pattern=dim_pattern)
                 return None
 
 
             if L_end_pattern ==2:#写像を全域から飛ばす
                 for i in range(right_next_number):
-                    self.make_brother(copy_right_tree.next[i] ,path=Path(adress=path.adress), dim_pattern=dim_pattern)        
+                    self.make_brother(copy_right_tree.next[i] ,adress=path.adress, tree_name=tree_name, dim_pattern=dim_pattern)
                 return None
 
 
@@ -922,8 +1006,8 @@ class SubNode(Node):
 
 
         for i in range(X):
-            self.next[  int(i*p_const/X) % left_next_number ].make_brother(copy_right_tree.next[  int(i*q_const/X) % right_next_number  ]  ,path=Path(adress=path.adress+[ int(i*p_const/X) % left_next_number ]), dim_pattern=dim_pattern)
-            
+            self.next[  int(i*p_const/X) % left_next_number ].make_brother(copy_right_tree.next[  int(i*q_const/X) % right_next_number  ]  ,adress=path.adress+[ int(i*p_const/X) % left_next_number ], tree_name=tree_name, dim_pattern=dim_pattern)
+
         return None
 
 
@@ -938,13 +1022,13 @@ class SubNode(Node):
 
         if self.next==[]:
             self.co_brother = []
-        
+
 
         for x in self.next:
             x.make_co_brother()
 
         return None
-    
+
 
 
     def search_leafs(self):
