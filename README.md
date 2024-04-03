@@ -4,10 +4,10 @@
 <br>https://youtu.be/Tphw-2R5Dvc
 <br>
 #### runtime
-<br>python-3.10.5
+python-3.10.5
 <br>
 #### requirements
-<br>numpy==1.23.2
+numpy==1.23.2
 <br>scipy==1.9.1
 <br>ortools==9.8.3296
 <br>pretty_midi==0.2.9
