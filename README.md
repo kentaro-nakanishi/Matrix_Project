@@ -15,7 +15,7 @@
 | mido | 1.2.10 |  |
 | matplotlib | 3.5.1 |  |
 
-<br>▼pretty_midiの配布先(GitHub)
+▼pretty_midiの配布先(GitHub)
 <br>https://github.com/craffel/pretty-midi
 
 #### 私的な連絡
