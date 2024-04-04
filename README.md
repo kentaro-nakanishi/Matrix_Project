@@ -18,6 +18,5 @@
 <br>▼pretty_midiの配布先(GitHub)
 <br>https://github.com/craffel/pretty-midi
 
-<br>
 #### 私的な連絡
 2024.4.3に予定していたコードの差し替え（リファクタリング・コメントの整理等）を完了しました。
