@@ -4,9 +4,9 @@
 <br>https://youtu.be/Tphw-2R5Dvc
 <br>
 <br>
-#### 動作環境
+#### 動作環境について
 
-| TH | TH | TH |
+| 必要ライブラリ | 推奨バージョン | コメント |
 | ---- | ---- | ---- |
 | TD | TD | TD |
 | TD | TD | TD |
