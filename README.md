@@ -11,10 +11,12 @@
 | numpy | 1.23.2 |  |
 | scipy | 1.9.1 |  |
 | ortools | 9.8.3296 |  |
-| pretty_midi | 0.2.9 | ※pipを経由してインストールするとエラーが出るため、<br>githubより直接ダウンロードしてインストールすることを推奨します。 |
+| pretty_midi | 0.2.9 | ※pipを経由してインストールするとエラーが出るため、<br>GitHubより直接ダウンロードしてインストールすることを推奨します。 |
 | mido | 1.2.10 |  |
 | matplotlib | 3.5.1 |  |
 
+<br>▼pretty_midiの配布先(GitHub)
+<br>https://github.com/craffel/pretty-midi
 
 <br>
 #### 私的な連絡
