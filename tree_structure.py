@@ -8,7 +8,7 @@ import tree_config #自作モジュール。
 
 class List_Adress_Tree:
     '''
-    旧来のプログラムで使っていた、リスト表記によるAdressを、人権が認められる記法で分かりやすく扱うためのクラス
+    旧来のプログラムで使っていた、リスト表記によるAdressを、より美しい記法で分かりやすく扱うためのクラス
 
     List_Adress_Tree()は、基本的には、BinaryTreeと同値な対象を表現するための一つの簡便的な表示法であり、木のそれぞれの葉のadressの集合によって木構造を暗に示す。
     ただし、中間の枝に関する情報は持っていないため、曖昧性がある。
@@ -67,7 +67,7 @@ class List_Adress_Tree:
 
 class Path:
     '''
-    pathとは、旧来のlistタイプのadressには(0とNoneを同一視しててキモイなどの点で)人権がないので、pathという新しいツールに進化させて人権を獲得したものである。
+    pathとは、旧来のlistタイプのadressは(0とNoneを同一視しててキモイなどの点で)記法が汚かったので、pathという新しいツールに進化させて改善したものである。
 
     pathは、木の中での(通常はrootからの)相対的な位置関係を表す。
 
@@ -211,9 +211,6 @@ class BinaryNode:
         if len(path.adress) == 0:
             return self
 
-        '''
-        next_node = BinaryNode(tree_name=self.tree_name)#これは削除してもよい？
-        '''
 
         if path.adress[0] == 0:
             if self.left:
